@@ -1,0 +1,79 @@
+.admin-create-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f4f6f8;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.admin-create-container {
+    background: #fff;
+    padding: 40px 50px;
+    border-radius: 10px;
+    width: 400px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.admin-create-container h2 {
+    color: #333;
+    margin-bottom: 25px;
+}
+
+.admin-create-container form {
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-create-container input {
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+}
+
+.admin-create-container button {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.admin-create-container button:hover {
+    background-color: #0056b3;
+}
+
+.message {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.message.success {
+    color: green;
+}
+
+.message.error {
+    color: red;
+}
+
+.back-btn {
+    margin-top: 20px;
+    background-color: #6c757d;
+}
+
+.back-btn:hover {
+    background-color: #5a6268;
+}
+
+.not-authorized {
+    text-align: center;
+    margin-top: 100px;
+    color: #555;
+}
+
