@@ -50,7 +50,9 @@ const Register: React.FC = () => {
         setSuccessMessage('');
 
         try {
-            await axios.post('http://localhost:8081/api/auth/register', formData);
+            const response = await axios.post('http://localhost:8080/authservice/auth/register'
+                , formData
+            , { headers: { "Content-Type": "application/json" }, responseType: "json" });
             setSuccessMessage('Successfully registered!');
             setTimeout(() => navigate('/'), 1500);
         } catch (error: any) {

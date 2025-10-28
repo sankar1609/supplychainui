@@ -81,7 +81,7 @@ const SupplyChainPortal: React.FC = () => {
         try {
             const token = localStorage.getItem("token");
             const response = await axios.get(
-                `http://localhost:8080/api/assets/queryProduct/${encodeURIComponent(productId.trim())}`,
+                `http://localhost:8080/supplychainapp/fabric/assets/queryProduct/${encodeURIComponent(productId.trim())}`,
                 {
                     headers: { Authorization: `Bearer ${token}` },
                 }
@@ -106,7 +106,7 @@ const SupplyChainPortal: React.FC = () => {
         try {
             const token = localStorage.getItem("token");
             const response = await axios.get(
-                `http://localhost:8080/api/assets/queryShipment/${encodeURIComponent(shipmentId.trim())}`,
+                `http://localhost:8080/supplychainapp/fabric/assets/queryShipment/${encodeURIComponent(shipmentId.trim())}`,
                 {
                     headers: { Authorization: `Bearer ${token}` },
                 }
@@ -130,7 +130,7 @@ const SupplyChainPortal: React.FC = () => {
         try {
             const token = localStorage.getItem("token");
             await axios.post(
-                "http://localhost:8080/api/assets/createProduct",
+                "http://localhost:8080/supplychainapp/fabric/assets/createProduct",
                 { ...newProduct, productId: newProduct.productId.trim(), quantity: Number(newProduct.quantity) },
                 {
                     headers: {
@@ -157,7 +157,7 @@ const SupplyChainPortal: React.FC = () => {
         try {
             const token = localStorage.getItem("token");
             await axios.put(
-                `http://localhost:8080/api/assets/update/${encodeURIComponent(updateProduct.productId.trim())}`,
+                `http://localhost:8080/supplychainapp/fabric/assets/update/${encodeURIComponent(updateProduct.productId.trim())}`,
                 { quantity: Number(updateProduct.quantity) },
                 {
                     headers: {
@@ -185,7 +185,7 @@ const SupplyChainPortal: React.FC = () => {
         try {
             const token = localStorage.getItem("token");
             await axios.delete(
-                `http://localhost:8080/api/assets/removeProduct/${encodeURIComponent(deleteId.trim())}`,
+                `http://localhost:8080/supplychainapp/fabric/assets/removeProduct/${encodeURIComponent(deleteId.trim())}`,
                 {
                     headers: { Authorization: `Bearer ${token}` },
                 }
@@ -208,7 +208,7 @@ const SupplyChainPortal: React.FC = () => {
         try {
             const token = localStorage.getItem("token");
             await axios.put(
-                `http://localhost:8080/api/assets/updateShipment/${encodeURIComponent(updateShipment.shipmentId.trim())}`,
+                `http://localhost:8080/supplychainapp/fabric/assets/updateShipment/${encodeURIComponent(updateShipment.shipmentId.trim())}`,
                 { status: updateShipment.status },
                 {
                     headers: {
@@ -235,7 +235,7 @@ const SupplyChainPortal: React.FC = () => {
         try {
             const token = localStorage.getItem("token");
             await axios.post(
-                "http://localhost:8080/api/assets/createShipment",
+                "http://localhost:8080/supplychainapp/fabric/assets/createShipment",
                 { ...newShipment, shipmentId: newShipment.shipmentId.trim(), quantity: Number(newShipment.quantity) },
                 {
                     headers: {

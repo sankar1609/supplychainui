@@ -35,7 +35,7 @@ const CreateAdminUser: React.FC = () => {
 
         try {
             await axios.post(
-                "http://localhost:8081/api/auth/createAdminUser",
+                "http://localhost:8080/authservice/auth/createAdminUser",
                 formData,
                 {
                     headers: {

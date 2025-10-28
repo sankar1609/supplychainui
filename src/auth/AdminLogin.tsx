@@ -15,7 +15,7 @@ const AdminLogin: React.FC = () => {
 
         try {
             const response = await axios.post(
-                "http://localhost:8081/api/auth/login",
+                "http://localhost:8080/authservice/auth/login",
                 { username, password },
                 { headers: { "Content-Type": "application/json" } }
             );
