@@ -27,7 +27,8 @@ const SupplyChainPortal: React.FC = () => {
 
     const [updateProduct, setUpdateProduct] = useState({
         productId: "",
-        quantity: "",
+        // `addQuantity` makes it clear this value will be added to the current stock
+        addQuantity: "",
     });
 
     const [deleteId, setDeleteId] = useState("");
@@ -44,6 +45,9 @@ const SupplyChainPortal: React.FC = () => {
         carrier: "",
         quantity: "",
     });
+
+    // New: place order feature (available to both admin and regular users)
+    const [order, setOrder] = useState({ productId: "", quantity: "" });
 
     useEffect(() => {
         const storedRole = localStorage.getItem("role");
@@ -71,6 +75,42 @@ const SupplyChainPortal: React.FC = () => {
         }
     };
 
+    // New helper: extract a useful message from various error shapes (axios errors, plain errors or server responses)
+    const extractErrorMessage = (error: any, fallback: string) => {
+        // Axios error with response body
+        if (axios.isAxiosError(error)) {
+            const resp = (error as any).response;
+            if (resp) {
+                // Common server patterns: { message: '...', error: '...' } or plain string body
+                const data = resp.data;
+                if (data) {
+                    if (typeof data === "string") return data;
+                    if (typeof data === "object") {
+                        // try common fields
+                        return data.message || data.error || JSON.stringify(data);
+                    }
+                }
+                // if no data, include status text if available
+                return resp.statusText || fallback;
+            }
+            // if no response (network error), return axios error message
+            return error.message || fallback;
+        }
+
+        // Non-axios error
+        if (error && typeof error === "object") {
+            if (error.message) return error.message;
+            try {
+                return JSON.stringify(error);
+            } catch (e) {
+                return fallback;
+            }
+        }
+
+        // Fallback to provided fallback or generic
+        return fallback;
+    };
+
     const handleQueryProduct = async () => {
         if (!productId.trim()) {
             alert("Please enter a Product ID to search.");
@@ -88,8 +128,9 @@ const SupplyChainPortal: React.FC = () => {
             );
             const parsed = safeParse(response?.data?.product ?? response?.data);
             setResult(parsed);
-        } catch (error) {
-            alert("❌ Product not found or unauthorized");
+        } catch (error: any) {
+            const msg = extractErrorMessage(error, "Product not found or unauthorized");
+            alert(`❌ ${msg}`);
             console.error(error);
         } finally {
             setLoadingProduct(false);
@@ -113,8 +154,9 @@ const SupplyChainPortal: React.FC = () => {
             );
             const parsed = safeParse(response?.data?.shipment ?? response?.data);
             setShipmentResult(parsed);
-        } catch (error) {
-            alert("❌ Shipment not found or unauthorized");
+        } catch (error: any) {
+            const msg = extractErrorMessage(error, "Shipment not found or unauthorized");
+            alert(`❌ ${msg}`);
             console.error(error);
         } finally {
             setLoadingShipment(false);
@@ -140,8 +182,9 @@ const SupplyChainPortal: React.FC = () => {
                 }
             );
             alert("✅ Product created successfully");
-        } catch (error) {
-            alert("❌ Failed to create product");
+        } catch (error: any) {
+            const msg = extractErrorMessage(error, "Failed to create product");
+            alert(`❌ ${msg}`);
             console.error(error);
         } finally {
             setActionLoading(false);
@@ -149,8 +192,8 @@ const SupplyChainPortal: React.FC = () => {
     };
 
     const handleUpdateProduct = async () => {
-        if (!updateProduct.productId.trim() || !updateProduct.quantity.trim()) {
-            alert("Please provide Product ID and new quantity.");
+        if (!updateProduct.productId.trim() || !updateProduct.addQuantity.trim()) {
+            alert("Please provide Product ID and quantity to add.");
             return;
         }
         setActionLoading(true);
@@ -158,7 +201,8 @@ const SupplyChainPortal: React.FC = () => {
             const token = localStorage.getItem("token");
             await axios.put(
                 `http://localhost:8080/supplychainapp/fabric/assets/update/${encodeURIComponent(updateProduct.productId.trim())}`,
-                { quantity: Number(updateProduct.quantity) },
+                // backend expects `quantity` but the UI now clearly indicates this is an additive value
+                { quantity: Number(updateProduct.addQuantity) },
                 {
                     headers: {
                         "Content-Type": "application/json",
@@ -167,8 +211,9 @@ const SupplyChainPortal: React.FC = () => {
                 }
             );
             alert("✅ Product updated successfully");
-        } catch (error) {
-            alert("❌ Failed to update product");
+        } catch (error: any) {
+            const msg = extractErrorMessage(error, "Failed to update product");
+            alert(`❌ ${msg}`);
             console.error(error);
         } finally {
             setActionLoading(false);
@@ -191,8 +236,9 @@ const SupplyChainPortal: React.FC = () => {
                 }
             );
             alert("✅ Product deleted successfully");
-        } catch (error) {
-            alert("❌ Failed to delete product");
+        } catch (error: any) {
+            const msg = extractErrorMessage(error, "Failed to delete product");
+            alert(`❌ ${msg}`);
             console.error(error);
         } finally {
             setActionLoading(false);
@@ -218,8 +264,9 @@ const SupplyChainPortal: React.FC = () => {
                 }
             );
             alert("✅ Shipment updated successfully");
-        } catch (error) {
-            alert("❌ Failed to update shipment");
+        } catch (error: any) {
+            const msg = extractErrorMessage(error, "Failed to update shipment");
+            alert(`❌ ${msg}`);
             console.error(error);
         } finally {
             setActionLoading(false);
@@ -245,8 +292,43 @@ const SupplyChainPortal: React.FC = () => {
                 }
             );
             alert("✅ Shipment created successfully");
-        } catch (error) {
-            alert("❌ Failed to create shipment");
+        } catch (error: any) {
+            const msg = extractErrorMessage(error, "Failed to create shipment");
+            alert(`❌ ${msg}`);
+            console.error(error);
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handlePlaceOrder = async () => {
+        if (!order.productId.trim() || !order.quantity.trim()) {
+            alert("Please provide Product ID and quantity to place an order.");
+            return;
+        }
+        setActionLoading(true);
+        try {
+            const token = localStorage.getItem("token");
+            // Backend expects numeric values for productId and quantity
+            const payload = { productId: Number(order.productId), quantity: Number(order.quantity) };
+            const response = await axios.post(
+                "http://localhost:8080/supplychainapp/fabric/assets/placeOrder",
+                payload,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            // Show server response in alert (or you can display it in UI)
+            console.log("placeOrder response:", response?.data);
+            alert("✅ Order placed successfully");
+            // clear order inputs
+            setOrder({ productId: "", quantity: "" });
+        } catch (error: any) {
+            const msg = extractErrorMessage(error, "Failed to place order");
+            alert(`❌ ${msg}`);
             console.error(error);
         } finally {
             setActionLoading(false);
@@ -258,9 +340,12 @@ const SupplyChainPortal: React.FC = () => {
             <header className="query-header">
                 <h1 className="portal-title">Supply Chain Portal</h1>
                 {role && (
-                    <button className="change-password-btn" onClick={() => setShowChangePassword(true)}>
-                        Change Password
-                    </button>
+                    <>
+                        <button className="logs-btn" onClick={() => navigate('/queryLogs')}>Query Logs</button>
+                        <button className="change-password-btn" onClick={() => setShowChangePassword(true)}>
+                            Change Password
+                        </button>
+                    </>
                 )}
                 <button className="logout-btn" onClick={handleLogout}>
                     Logout
@@ -324,6 +409,23 @@ const SupplyChainPortal: React.FC = () => {
                 )}
             </div>
 
+            {/* Place Order (available to all users) */}
+            <div className="card">
+                <h2>🛒 Place Order</h2>
+                <input
+                    placeholder="Product ID"
+                    value={order.productId}
+                    onChange={(e) => setOrder({ ...order, productId: e.target.value })}
+                />
+                <input
+                    type="number"
+                    placeholder="Quantity"
+                    value={order.quantity}
+                    onChange={(e) => setOrder({ ...order, quantity: e.target.value })}
+                />
+                <button onClick={handlePlaceOrder} disabled={actionLoading}>{actionLoading ? "Processing..." : "Place Order"}</button>
+            </div>
+
             {/* Admin Section */}
             {role === "ROLE_ADMIN" && (
                 <div className="admin-section">
@@ -341,7 +443,7 @@ const SupplyChainPortal: React.FC = () => {
                     <div className="card">
                         <h3>✏️ Update Product</h3>
                         <input placeholder="Product ID" onChange={(e) => setUpdateProduct({ ...updateProduct, productId: e.target.value })} />
-                        <input type="number" placeholder="New Quantity" onChange={(e) => setUpdateProduct({ ...updateProduct, quantity: e.target.value })} />
+                        <input type="number" placeholder="Add Quantity (will be added to existing)" onChange={(e) => setUpdateProduct({ ...updateProduct, addQuantity: e.target.value })} />
                         <button onClick={handleUpdateProduct} disabled={actionLoading}>{actionLoading ? "Processing..." : "Update Product"}</button>
                     </div>
 

@@ -6,6 +6,7 @@ import './styles/App.css';
 import Register from './auth/Register';
 import CreateAdminUser from './auth/createAdminUser';
 import AdminLogin from './auth/AdminLogin';
+import QueryLogByProduct from './components/QueryLogByProduct';
 
 const App: React.FC = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
@@ -35,6 +36,18 @@ const App: React.FC = () => {
                         element={
                             isAuthenticated ? (
                                 <SupplyChainPortal />
+                            ) : (
+                                <Navigate to="/login" replace />
+                            )
+                        }
+                    />
+
+                    {/* Query logs route (protected) */}
+                    <Route
+                        path="/queryLogs"
+                        element={
+                            isAuthenticated ? (
+                                <QueryLogByProduct />
                             ) : (
                                 <Navigate to="/login" replace />
                             )
